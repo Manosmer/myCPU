@@ -1,0 +1,72 @@
+; 12-bit addresses = 2^12 = 4096 bytes RAM, 1-byte word
+
+
+;; ==== ISA ====
+
+; Memory
+(0)  0x0a: LOAD                      , ld addr      | Load from memory address (addr) to the accumulator ([-8,7] from pc)
+(1)  0x1a: STORE                     , st addr      | Store the contents of the accumulator to memory address (addr) ([-8,7] from pc)
+
+; Registers
+(2)  0x2r: MOVE                      , mv register  | Move the contents of the accumulator to a register
+(3)  0x3r: GET FROM                  , gfr register | Get content from the register and load it to the accumulator
+
+(4)  0x4r: FLUSH                     , fl register  | Flush (or clear) register
+
+
+; Arithmetic operations
+(5)  0x5r: ADD                       , add register | Add the contents of the accumulator and a register and store the result in the accumulator
+(6)  0x6-: NEGATIVE                  , neg          | Make the number in the accumulator negative
+
+(7)  0x7r: MULTIPLY                  , mul register | Multiply the contents of the accumulator and a register and store the result in the accumulator
+(8)  0x8r: DIVIDE                    , div register | Divide the contents of the accumulator and a register and store the result in the accumulator
+
+
+; Comparison
+(9)  0x9r: GREATER THAN              , gt register  | if the contents of the accumulator are greater than the contents of the register, then set the zero bit register
+(10) 0xAr: GREATER THAN OR EQUAL     , gte register | if the contents of the accumulator are greater or equal than the contents of the register, then set the zero bit register
+
+
+; Branch
+(11) 0xBa: JUMP                      , jmp addr     | Unconditional jump to address ([-8,7] relative jump from pc)
+(12) 0xCa: JUMP IF NOT ZERO          , jnz addr     | Jump to address if zero register is not set ([-8,7] relative jump from pc)
+
+
+; Terminate
+(13) 0xD-: HALT                      , htl          | processor stops
+
+
+;; ==== REGISTERS ====
+;; REGISTERS ARE 8-bit
+
+General Puprose (GA): r0, r1, r2, r3
+
+Accumulator (Acc): acc
+Instruction Register (IR): ir
+Programme Counter (PC): pc
+Temporary register: tmp
+
+; 12-bit MAR
+Memory Address Register (MAR): mar ; for memory addressing extension
+
+
+;; This is 1 bit
+Zero Bit register(ZR): zr
+
+
+;; ==== MACROS ====
+
+; LOAD to REGISTER from address:
+ldr $reg, $addr:
+    mv tmp    ; move accu's contents to temp so they do not get lost
+    ld $addr  ; load from memory
+    mv $reg   ; move to register
+    gfr tmp   ; restore accu's contents
+
+
+; STORE from REGISTER to ADDRESS:
+str $reg, $addr:
+    mv tmp    ; move accu's contents to temp so they do not get lost
+    gfr $reg  ; load from register
+    st $addr  ; store accu's contents (register's contents actually)
+    gfr tmp   ; restore accu's contents
