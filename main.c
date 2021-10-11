@@ -26,7 +26,7 @@ REGISTER ir;
 
 REGISTER zbr;
 
-REGISTER mar[2]; 
+REGISTER mar[2];
 
 
 unsigned char running = 0;
@@ -116,7 +116,7 @@ void execute(const struct Operation operation) {
     switch (operation.op)
     {
         // --- MEMORY ---
-        case 0x00:
+        case 0x0:
             // load
 
             // little endian system, we need to store the 2 bytes in reverse order. So, mar[1] first, then mar[2]
@@ -128,7 +128,7 @@ void execute(const struct Operation operation) {
 
             acc = RAM[0x0000FFFF & *(int*)mar]; // load from memory | bitwise-AND clears the garbage first two bytes of typecasted integer
             break;
-        case 0x01:
+        case 0x1:
             // store
             
             mar[1] = operation.operand;
@@ -141,97 +141,124 @@ void execute(const struct Operation operation) {
             break;
 
         // --- REGISTER ---
-        case 0x02:
+        case 0x2:
             // MOVE
-            switch ((int) operation.operand)
+            switch (operation.operand)
             {
-                case 0:
+                case 0x0:
                     r0 = acc;
                     break;
-                case 1:
+                case 0x1:
                     r1 = acc;
                     break;
-                case 2:
+                case 0x2:
                     r2 = acc;
                     break;
-                case 3:
+                case 0x3:
                     r3 = acc;
                     break;
-                case 4:
+                case 0x4:
                     tmp = acc;
                     break;
             }
             break;
 
-        case 0x03:
+        case 0x3:
             // GET FROM REGISTER
-            switch ((int) operation.operand)
+            switch (operation.operand)
             {
-                case 0:
+                case 0x0:
                     acc = r0;
                     break;
-                case 1:
+                case 0x1:
                     acc = r1;
                     break;
-                case 2:
+                case 0x2:
                     acc = r2;
                     break;
-                case 3:
+                case 0x3:
                     acc = r3;
                     break;
-                case 4:
+                case 0x4:
                     acc = tmp;
                     break;
             }
             break;
         
-        case 0x04:
+        case 0x4:
             // FLUSH
-            switch ((int) operation.operand)
+            switch (operation.operand)
             {
-                case 0:
+                case 0x0:
                     r0 = 0;
                     break;
-                case 1:
+                case 0x1:
                     r1 = 0;
                     break;
-                case 2:
+                case 0x2:
                     r2 = 0;
                     break;
-                case 3:
+                case 0x3:
                     r3 = 0;
                     break;
-                case 4:
+                case 0x4:
                     tmp = 0;
                     break;
-                case 5:
+                case 0x5:
                     acc = 0;
                     break;
             }
             break;
 
         // --- ARITHMETIC ---
-        case 0x05:
+        case 0x5:
             // ADD:
-            switch ((int) operation.operand)
+            switch (operation.operand)
             {
-                case 0:
+                case 0x0:
                     acc = acc + r0;
                     break;
-                case 1:
+                case 0x1:
                     acc = acc + r1;
                     break;
-                case 2:
+                case 0x2:
                     acc = acc + r2;
                     break;
-                case 3:
+                case 0x3:
                     acc = acc + r3;
                     break;
             }
             break;
+        
+        case 0x6:
+            // NEGATIVE
+            acc = -acc;
+            break;
+        
+        case 0x7:
+            // MULTIPLY
+            switch (operation.operand)
+            {
+                case 0x0:
+                    acc = acc * r0;
+                    break;
+                case 0x1:
+                    acc = acc * r1;
+                    break;
+                case 0x2:
+                    acc = acc * r2;
+                    break;
+                case 0x3:
+                    acc = acc * r3;
+                    break;
+                case 0x4:
+                    acc = acc * tmp;
+                    break; 
+            }
+            break;
 
         // --- HALT ---
-        case 0x0D:
+        case 0xD:
             running = 0;
             break;
     }
