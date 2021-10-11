@@ -79,7 +79,7 @@ void boot() {
 
     RAM[5] = 0x90; // [acc] > [r0]; which is 23 > 10, so zerobit = 1(set)
     
-    RAM[6] = 0xC2; // if zerobit is set -> pc+=1, this should jump halt
+    RAM[6] = 0xC1; // if zerobit is set -> pc+=1, this should jump halt
     
     RAM[7] = 0xD0; // HALT
 
