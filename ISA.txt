@@ -4,36 +4,36 @@
 ;; ==== ISA ====
 
 ; Memory
-(0)  0x0a: LOAD                      , ld addr      | Load from memory address (addr) to the accumulator ([-8,7] from pc)
-(1)  0x1a: STORE                     , st addr      | Store the contents of the accumulator to memory address (addr) ([-8,7] from pc)
+(0)  0x0a > 0xaa: LOAD                      , ld addr      | Load from memory address (addr) to the accumulator. Uses Memory Address Register (Requires 2 ticks)
+(1)  0x1a > 0xaa: STORE                     , st addr      | Store the contents of the accumulator to memory address (addr). Uses Memory Address Register (Requires 2 ticks)
 
 ; Registers
-(2)  0x2r: MOVE                      , mv register  | Move the contents of the accumulator to a register
-(3)  0x3r: GET FROM                  , gfr register | Get content from the register and load it to the accumulator
+(2)  0x2r       : MOVE                      , mv register  | Move the contents of the accumulator to a register
+(3)  0x3r       : GET FROM                  , gfr register | Get content from the register and load it to the accumulator
 
-(4)  0x4r: FLUSH                     , fl register  | Flush (or clear) register
+(4)  0x4r       : FLUSH                     , fl register  | Flush (or clear) register
 
 
 ; Arithmetic operations
-(5)  0x5r: ADD                       , add register | Add the contents of the accumulator and a register and store the result in the accumulator
-(6)  0x6-: NEGATIVE                  , neg          | Make the number in the accumulator negative
+(5)  0x5r       : ADD                       , add register | Add the contents of the accumulator and a register and store the result in the accumulator
+(6)  0x6-       : NEGATIVE                  , neg          | Make the number in the accumulator negative
 
-(7)  0x7r: MULTIPLY                  , mul register | Multiply the contents of the accumulator and a register and store the result in the accumulator
-(8)  0x8r: DIVIDE                    , div register | Divide the contents of the accumulator and a register and store the result in the accumulator
+(7)  0x7r       : MULTIPLY                  , mul register | Multiply the contents of the accumulator and a register and store the result in the accumulator
+(8)  0x8r       : DIVIDE                    , div register | Divide the contents of the accumulator and a register and store the result in the accumulator
 
 
 ; Comparison
-(9)  0x9r: GREATER THAN              , gt register  | if the contents of the accumulator are greater than the contents of the register, then set the zero bit register
-(10) 0xAr: GREATER THAN OR EQUAL     , gte register | if the contents of the accumulator are greater or equal than the contents of the register, then set the zero bit register
+(9)  0x9r       : GREATER THAN              , gt register  | if the contents of the accumulator are greater than the contents of the register, then set the zero bit register
+(10) 0xAr       : EQUAL                     , eq register  | if the contents of the accumulator are equal than the contents of the register, then set the zero bit register
 
 
 ; Branch
-(11) 0xBa: JUMP                      , jmp addr     | Unconditional jump to address ([-8,7] relative jump from pc)
-(12) 0xCa: JUMP IF NOT ZERO          , jnz addr     | Jump to address if zero register is not set ([-8,7] relative jump from pc)
+(11) 0xBa       : JUMP                      , jmp addr     | Unconditional jump to address ([-8,7] relative jump from pc)
+(12) 0xCa       : JUMP IF NOT ZERO          , jnz addr     | Jump to address if zero register is not set ([-8,7] relative jump from pc)
 
 
 ; Terminate
-(13) 0xD-: HALT                      , htl          | processor stops
+(13) 0xD-       : HALT                      , htl          | processor stops
 
 
 ;; ==== REGISTERS ====
@@ -70,3 +70,10 @@ str $reg, $addr:
     gfr $reg  ; load from register
     st $addr  ; store accu's contents (register's contents actually)
     gfr tmp   ; restore accu's contents
+
+
+; Greater than or Equal to Comparison
+gte $reg:
+    gt $reg   ; acc > $reg
+    jnz 1     ; if acc > $reg, then skip acc == $reg
+    eq $reg   ; acc == $reg

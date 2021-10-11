@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 
+typedef unsigned char BIT;
 typedef unsigned char WORD;
 typedef WORD REGISTER;
 
@@ -10,6 +11,8 @@ struct Operation{
     OPCODE op;
     WORD operand;
 };
+
+typedef struct Operation Operation;
 
 
 WORD RAM[4096];
@@ -24,10 +27,10 @@ REGISTER tmp;
 REGISTER pc;
 REGISTER ir;
 
-REGISTER zbr;
 
 REGISTER mar[2];
 
+BIT ALU_zerobit;
 
 unsigned char running = 0;
 
@@ -58,35 +61,39 @@ void boot() {
     pc = 0;
     ir = 0;
     
-    zbr = 0;
+    ALU_zerobit = 0;
 
     mar[0] = 0;
     mar[1] = 0;
 
 
     // == test PROGRAM - this should be removed ==
-    RAM[0] = 0x00;  // load 
-    RAM[1] = 0x0C;  // from address 12 (num 34)
+    // - PROGRAMME -
+    RAM[0] = 0x00; // load
+    RAM[1] = 0x0B; // from addr 11 number 10
+
+    RAM[2] = 0x20; // move 10 to r0
     
-    RAM[2] = 0x20;  // move acc to r0
+    RAM[3] = 0x00; // load
+    RAM[4] = 0x0C; // from addr 12 number 23;
+
+    RAM[5] = 0x90; // [acc] > [r0]; which is 23 > 10, so zerobit = 1(set)
     
-    RAM[3] = 0x00;  // load
-    RAM[4] = 0x0D;  // from address 13 (num 6)
+    RAM[6] = 0xC2; // if zerobit is set -> pc+=1, this should jump halt
+    
+    RAM[7] = 0xD0; // HALT
 
-    RAM[5] = 0x50;  // acc + r0
+    RAM[8] = 0x00; // load
+    RAM[9] = 0x0D; // from addr 13 number 100
 
-    RAM[6] = 0x10;  // store acc
-    RAM[7] = 0x0E;  // to addr 14
+    RAM[10] = 0xD0; // HALT
 
-    RAM[8] = 0x45;  // FLUSH acc
+    // - DATA -
+    RAM[11] = 10;
+    RAM[12] = 23;
+    RAM[13] = 100;
 
-    RAM[9] = 0x00;  // LOAD
-    RAM[10] = 0x0E; // from address 14 (num 40)
 
-    RAM[11] = 0xD0; // halt
-
-    RAM[12] = (WORD) 34;
-    RAM[13] = (WORD)  6;
 
     // result in the acc must be 40
 }
@@ -100,9 +107,9 @@ void fetch() {
     ir = RAM[pc++];
 }
 
-const struct Operation readOp() {
+const Operation readOp() {
     // read in control unit
-    const struct Operation operation = {
+    const Operation operation = {
         (ir >> 4) & 0x0F, // mask opcode
         ir & 0x0F         // mask operand
     };
@@ -110,7 +117,7 @@ const struct Operation readOp() {
     return operation;
 }
 
-void execute(const struct Operation operation) {
+void execute(const Operation operation) {
     char test[2];
     // TODO
     switch (operation.op)
@@ -257,6 +264,86 @@ void execute(const struct Operation operation) {
             }
             break;
 
+        case 0x8:
+            // DIVIDE
+            switch (operation.operand)
+            {
+                case 0x0:
+                    acc = acc / r0;
+                    break;
+                case 0x1:
+                    acc = acc / r1;
+                    break;
+                case 0x2:
+                    acc = acc / r2;
+                    break;
+                case 0x3:
+                    acc = acc / r3;
+                    break;
+                case 0x4:
+                    acc = acc / tmp;
+                    break; 
+            }
+            break;
+
+        // --- COMPARISON ---
+        case 0x9:
+            // Greater than
+            switch (operation.operand)
+            {
+                case 0x0:
+                    ALU_zerobit = acc > r0;
+                    break;
+                case 0x1:
+                    ALU_zerobit = acc > r1;
+                    break;
+                case 0x2:
+                    ALU_zerobit = acc > r2;
+                    break;
+                case 0x3:
+                    ALU_zerobit = acc > r3;
+                    break;
+                case 0x4:
+                    ALU_zerobit = acc > tmp;
+                    break; 
+            }
+            break;
+
+        case 0xA:
+            // Equal
+            switch (operation.operand)
+            {
+                case 0x0:
+                    ALU_zerobit = acc == r0;
+                    break;
+                case 0x1:
+                    ALU_zerobit = acc == r1;
+                    break;
+                case 0x2:
+                    ALU_zerobit = acc == r2;
+                    break;
+                case 0x3:
+                    ALU_zerobit = acc == r3;
+                    break;
+                case 0x4:
+                    ALU_zerobit = acc == tmp;
+                    break; 
+            }
+            break;
+
+        // --- BRANCH ---
+        case 0xB:
+            // Unconditional jump
+            pc += (short) operation.operand;
+            break;
+
+        case 0xC:
+            // Conditional, "if not-zero" jump
+            if(ALU_zerobit) {
+                pc += (short) operation.operand;
+            }
+            break;
+
         // --- HALT ---
         case 0xD:
             running = 0;
@@ -266,7 +353,7 @@ void execute(const struct Operation operation) {
 
 
 int main() {
-    struct Operation* const operation = (struct Operation*) malloc(sizeof(struct Operation));
+    Operation* const operation = (Operation*) malloc(sizeof(Operation));
     
     boot();
 
