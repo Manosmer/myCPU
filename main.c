@@ -68,14 +68,18 @@ void boot() {
 
 
     // == test PROGRAM - this should be removed ==
+    /* if (23 > 10) {
+         a = 100;
+    } */
+
     // - PROGRAMME -
     RAM[0] = 0x00; // load
-    RAM[1] = 0x0B; // from addr 11 number 10
+    RAM[1] = 0x0D; // from addr 13 number 10
 
     RAM[2] = 0x20; // move 10 to r0
     
     RAM[3] = 0x00; // load
-    RAM[4] = 0x0C; // from addr 12 number 23;
+    RAM[4] = 0x0E; // from addr 14 number 23;
 
     RAM[5] = 0x90; // [acc] > [r0]; which is 23 > 10, so zerobit = 1(set)
     
@@ -84,18 +88,18 @@ void boot() {
     RAM[7] = 0xD0; // HALT
 
     RAM[8] = 0x00; // load
-    RAM[9] = 0x0D; // from addr 13 number 100
+    RAM[9] = 0x0F; // from addr 15 number 100
+    
+    RAM[10] = 0x10; // store
+    RAM[11] = 0x10; // to addr 16 number 100
 
-    RAM[10] = 0xD0; // HALT
+    RAM[12] = 0xD0; // HALT
 
     // - DATA -
-    RAM[11] = 10;
-    RAM[12] = 23;
-    RAM[13] = 100;
+    RAM[13] = 10;
+    RAM[14] = 23;
+    RAM[15] = 100;
 
-
-
-    // result in the acc must be 40
 }
 
 void clock_tick() {
@@ -103,7 +107,7 @@ void clock_tick() {
 }
 
 void fetch() {
-    // Instruction registers loaded with op
+    // Instruction register loaded with op
     ir = RAM[pc++];
 }
 
@@ -369,6 +373,8 @@ int main() {
     }while(running);
 
     printf("CPU powering off after %d ticks | RESULT IN ACC: %d\n", TICKS, acc);
+
+    printf("Variable 'a' at RAM[16]: %d\n", RAM[16]);
 
     return 0;
 }
